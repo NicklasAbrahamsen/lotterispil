@@ -1,0 +1,112 @@
+@page "/play"
+@inject NavigationManager NavigationManager
+
+<h1>Heidis Bier Bar</h1>
+
+<p>Din saldo: @game.Balance kr.</p>
+@if (game.Balance <= 0)
+{
+    <p>Sorry, du har ikke nok balance til at spille.</p>
+}
+else if (game.Started)
+{
+    <p>Vent venligst mens boksene ruller.</p>
+    <div class="box-container">
+        @foreach (var box in game.Boxes)
+        {
+            <div class="box">
+                <img src="https://picsum.photos/200" alt="Box Image" />
+            </div>
+        }
+    </div>
+}
+else
+{
+    <p>Vælg en boks:</p>
+
+    <button class="btn btn-primary" @onclick="() => BuyBox(50)">Køb for 50 kr.</button>
+    <button class="btn btn-primary" @onclick="() => BuyBox(100)">Køb for 100 kr.</button>
+    <button class="btn btn-primary" @onclick="() => BuyBox(200)">Køb for 200 kr.</button>
+}
+
+<style>
+    .keyframes roll {
+        0% {
+            transform: translateY(0);
+        }
+        100% {
+            transform: translateY(-150px);
+        }
+    }
+
+    .box {
+        width: 150px;
+        height: 150px;
+        border: 1px solid black;
+        margin-right: 10px;
+        display: inline-block;
+        animation-name: roll;
+        animation-duration: 2s;
+        animation-timing-function: ease-in-out;
+        animation-iteration-count: infinite;
+    }
+
+    .box img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+</style>
+
+@code {
+    private Game game = new Game(20, 0.9m, 500m);
+
+    private async void BuyBox(int price)
+    {
+        if (game.Started)
+        {
+            return;
+        }
+
+        if (game.Balance < price)
+        {
+            return;
+        }
+
+        game.Balance -= price;
+
+        // Update the price of the boxes
+        foreach (var box in game.Boxes)
+        {
+            box.Price = price;
+        }
+
+        // Start the game
+        game.Start();
+
+        // Wait for the boxes to roll through 20 images
+        await Task.Delay(100 * 20);
+
+        // End the game and calculate the final win amount
+        game.End();
+        decimal finalWin = game.TotalWin * game.RTP;
+
+        // Add the final win amount to the balance
+        game.Balance += finalWin;
+
+        // Update the game's balance in the Play page
+        StateHasChanged();
+
+        // Navigate to the win page
+        NavigationManager.NavigateTo($"/win/{finalWin}");
+    }
+}
+
+
+
+
+
+
+
+
+

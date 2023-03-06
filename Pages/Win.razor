@@ -1,0 +1,17 @@
+@page "/win/{amount}"
+@inject NavigationManager NavigationManager
+
+<h1>You won @Amount kr!</h1>
+
+<button class="btn btn-primary" @onclick="GoBack">Go back</button>
+
+@code {
+    [Parameter]
+    public string Amount { get; set; }
+
+    private void GoBack()
+    {
+        NavigationManager.NavigateTo("/play");
+    }
+}
+
